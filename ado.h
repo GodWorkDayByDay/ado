@@ -52,9 +52,9 @@ namespace ADO_NS
 		CADO(CONFIG&);
 		~CADO();
 
-		bool Open(CursorLocationEnum CursorLocation = adUseClient);
+		void Open(CursorLocationEnum CursorLocation = adUseClient);
 		void Close();
-		bool CommandReset();
+		void CommandReset();
 		bool IsOpen();
 		void SetQuery(IN TCHAR* tszQuery);;
 		void Execute(CommandTypeEnum CommandType = adCmdStoredProc, ExecuteOptionEnum OptionType = adOptionUnspecified);
@@ -72,20 +72,12 @@ namespace ADO_NS
 		void GetFieldValue(IN TCHAR* tszName, OUT T& Value);
 		/**
 		\remarks	문자형 필드값을 읽는다.
-		\par		읽은 값이 null이거나 버퍼가 작다면 실패를 리턴한다.
-		\param		읽은 문자을 담을 버퍼의 크기
-		\return		성공(TRUE) 실패(FLASE)
 		*/
 		void GetFieldValue(IN TCHAR*, OUT TCHAR*, IN unsigned int);
 		/**
 		\remarks	binary 필드값을 읽는다.
-		\par		읽은 값이 null이거나 버퍼가 작다면 실패를 리턴한다.
-		\param		읽은 binary을 담을 버퍼의 크기, 읽은 binary 크기
-		\return		성공(TRUE) 실패(FLASE)
 		*/
 		void GetFieldValue(IN TCHAR*, OUT BYTE*, IN int, OUT int&);
-
-
 
 		/**
 		\remarks	정수/실수/날짜시간 타입의 파라메터 생성
@@ -116,17 +108,11 @@ namespace ADO_NS
 
 		/**
 		\remarks	문자형 파라메터값을 읽는다.
-		\par		읽은 값이 null이거나 버퍼가 작다면 실패를 리턴한다.
-		\param		읽은 문자을 담을 버퍼의 크기
-		\return		성공(TRUE) 실패(FLASE)
 		*/
 		void GetParameter(IN TCHAR*, OUT TCHAR*, IN int);
 
 		/**
 		\remarks	바이너리형 파라메터값을 읽는다.
-		\par		읽은 값이 null이거나 버퍼가 작다면 실패를 리턴한다.
-		\param		읽은 문자을 담을 버퍼의 크기, 읽은 버퍼의 크기
-		\return		성공(TRUE) 실패(FLASE)
 		*/
 		void GetParameter(IN TCHAR*, OUT BYTE*, IN int, OUT int&);
 

@@ -3,7 +3,7 @@ Introduction
 
 features
 -enable UNICODE
--support thread
+-thread safe
 
 compile & test on
 -visual studio 2013
@@ -12,6 +12,6 @@ compile & test on
 history
 - 2016-03-10
 
-mail
+mail to
 -viceenu@gmail.com
 

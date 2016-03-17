@@ -73,9 +73,9 @@ int sample_procedure_call()
 		pDB->CreateBinaryParameter(_T("@io_binaryVal"), adParamInputOutput, (BYTE*)binaryVal, 10);
 
 		// for null value
-		pDB->CreateParameter(_T("@IO_nullCharVal"), adParamInputOutput, NULL, 1);
+		pDB->CreateParameter(_T("@Io_nullCharVal"), adParamInputOutput, NULL, 1);
 		pDB->CreateNullParameter(_T("@io_nullVal"), adInteger, adParamInputOutput);
-		pDB->CreateBinaryParameter(_T("@IO_nullBinaryVal"), adParamInputOutput, NULL, 1);
+		pDB->CreateBinaryParameter(_T("@Io_nullBinaryVal"), adParamInputOutput, NULL, 1);
 
 
 		pDB->SetQuery(_T("sample_procedure"));

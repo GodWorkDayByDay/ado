@@ -100,39 +100,29 @@ namespace ADO_NS
 		delete pImpl;
 	}
 
-	bool CADO::Open(CursorLocationEnum CursorLocation)
+	void CADO::Open(CursorLocationEnum CursorLocation)
 	{
-		try
-		{
-			pImpl->m_pConnection_.Release();
-			pImpl->m_pConnection_.CreateInstance(__uuidof(Connection));
-			pImpl->m_pCommand_.Release();
-			pImpl->m_pCommand_.CreateInstance(__uuidof(Command));
+		pImpl->m_pConnection_.Release();
+		pImpl->m_pConnection_.CreateInstance(__uuidof(Connection));
+		pImpl->m_pCommand_.Release();
+		pImpl->m_pCommand_.CreateInstance(__uuidof(Command));
 
-			CONFIG_IMPL* pConfigImpl = pImpl->config_.pImpl_;
-			if (pConfigImpl->m_nConnectionTimeout_)
-				pImpl->m_pConnection_->PutConnectionTimeout(pConfigImpl->m_nConnectionTimeout_);
+		CONFIG_IMPL* pConfigImpl = pImpl->config_.pImpl_;
+		if (pConfigImpl->m_nConnectionTimeout_)
+			pImpl->m_pConnection_->PutConnectionTimeout(pConfigImpl->m_nConnectionTimeout_);
 
-			pImpl->m_pConnection_->CursorLocation = CursorLocation;
+		pImpl->m_pConnection_->CursorLocation = CursorLocation;
 
-			if (!pConfigImpl->m_tstrProvider_.empty())		//ip접속일 경우 Provider 사용
-				pImpl->m_pConnection_->put_Provider((_bstr_t)pConfigImpl->m_tstrProvider_.c_str());
+		if (!pConfigImpl->m_tstrProvider_.empty())		//ip접속일 경우 Provider 사용
+			pImpl->m_pConnection_->put_Provider((_bstr_t)pConfigImpl->m_tstrProvider_.c_str());
 
-			pImpl->m_pConnection_->Open((_bstr_t)pImpl->config_.GetConnectionString().c_str(), (_bstr_t)pConfigImpl->m_tstrUserID_.c_str(),
-				(_bstr_t)pConfigImpl->m_tstrPassword_.c_str(), NULL);
+		pImpl->m_pConnection_->Open((_bstr_t)pImpl->config_.GetConnectionString().c_str(), (_bstr_t)pConfigImpl->m_tstrUserID_.c_str(),
+			(_bstr_t)pConfigImpl->m_tstrPassword_.c_str(), NULL);
 
-			if (!pConfigImpl->m_tstrInitialCatalog_.empty())
-				pImpl->m_pConnection_->DefaultDatabase = pConfigImpl->m_tstrInitialCatalog_.c_str();
+		if (!pConfigImpl->m_tstrInitialCatalog_.empty())
+			pImpl->m_pConnection_->DefaultDatabase = pConfigImpl->m_tstrInitialCatalog_.c_str();
 
-			pImpl->m_pCommand_->ActiveConnection = pImpl->m_pConnection_;
-			return true;
-		}
-		catch (_com_error &e)
-		{
-			throw e;
-		}
-
-		return false;
+		pImpl->m_pCommand_->ActiveConnection = pImpl->m_pConnection_;
 	}
 
 	bool CADO::IsOpen()
@@ -163,28 +153,18 @@ namespace ADO_NS
 		pImpl->m_pConnection_->RollbackTrans();
 	}
 
-	bool CADO::CommandReset()
+	void CADO::CommandReset()
 	{
-		try
-		{
-			pImpl->m_tstrQuery_.clear();
+		pImpl->m_tstrQuery_.clear();
 
-			pImpl->m_pCommand_.Release();
-			pImpl->m_pCommand_.CreateInstance(__uuidof(Command));
-			pImpl->m_pCommand_->ActiveConnection = pImpl->m_pConnection_;
-			return true;
-		}
-		catch (_com_error &e)
-		{
-			throw e;
-		}
-
-		return false;
+		pImpl->m_pCommand_.Release();
+		pImpl->m_pCommand_.CreateInstance(__uuidof(Command));
+		pImpl->m_pCommand_->ActiveConnection = pImpl->m_pConnection_;
 	}
 
 	int CADO::GetFieldCount()
 	{
-		if (!pImpl->m_pRecordset_)
+		if (!pImpl->m_pRecordset_ || !pImpl->m_pRecordset_->GetFields())
 			return 0;
 
 		return pImpl->m_pRecordset_->GetFields()->GetCount();;
@@ -212,7 +192,6 @@ namespace ADO_NS
 		CONFIG_IMPL* pConfigImpl = pImpl->config_.pImpl_;
 		if (0 != pConfigImpl->m_nCommandTimeout_)
 			pImpl->m_pCommand_->CommandTimeout = pConfigImpl->m_nCommandTimeout_;
-		//			m_pConnection->CursorLocation = adUseClient;
 		pImpl->m_pRecordset_ = pImpl->m_pCommand_->Execute(NULL, NULL, OptionType);
 		pImpl->is_first_record_ = true;
 	}
@@ -287,85 +266,62 @@ namespace ADO_NS
 
 	void CADO::CreateNullParameter(IN TCHAR* tszName, IN enum DataTypeEnum Type, IN enum ParameterDirectionEnum Direction)
 	{
-		try	{
-			_ParameterPtr pParametor(pImpl->m_pCommand_->CreateParameter(tszName, Type, Direction, 0));
-			pImpl->m_pCommand_->Parameters->Append(pParametor);
-			_variant_t vNull;
-			vNull.ChangeType(VT_NULL);
-			pParametor->Value = vNull;
-		}
-		catch (_com_error &e) {
-			dump_com_error(e);
-		}
-
-		return;
+		_ParameterPtr pParametor(pImpl->m_pCommand_->CreateParameter(tszName, Type, Direction, 0));
+		pImpl->m_pCommand_->Parameters->Append(pParametor);
+		_variant_t vNull;
+		vNull.ChangeType(VT_NULL);
+		pParametor->Value = vNull;
 	}
 
 	void CADO::CreateParameter(IN TCHAR* tszName, IN enum ParameterDirectionEnum Direction, IN TCHAR* pValue, IN int nSize)
 	{
-		_ASSERTE(nSize > 0 && "not allow 0 size!!");
+		_ParameterPtr pParametor(pImpl->m_pCommand_->CreateParameter(tszName, adVarChar, Direction, nSize));
+		pImpl->m_pCommand_->Parameters->Append(pParametor);
 
-		try	{
-			_ParameterPtr pParametor(pImpl->m_pCommand_->CreateParameter(tszName, adVarChar, Direction, nSize));
-			pImpl->m_pCommand_->Parameters->Append(pParametor);
-
-			if (NULL == pValue)
-			{
-				_variant_t vValue;
-				vValue.vt = VT_NULL;
-				pParametor->Value = vValue;
-			}
-			else
-			{
-				_variant_t vValue(pValue);
-				pParametor->Value = vValue;
-			}
+		if (NULL == pValue)
+		{
+			_variant_t vValue;
+			vValue.vt = VT_NULL;
+			pParametor->Value = vValue;
 		}
-		catch (_com_error &e) {
-			dump_com_error(e);
+		else
+		{
+			_variant_t vValue(pValue);
+			pParametor->Value = vValue;
 		}
-
-		return;
 	}
 
 
 
 	void CADO::CreateBinaryParameter(IN TCHAR* tszName, IN enum ParameterDirectionEnum Direction, IN BYTE* pValue, IN int nSize)
 	{
-		_ASSERTE(nSize > 0 && "not allow 0 size!!");
+	
+		_ParameterPtr pParametor(pImpl->m_pCommand_->CreateParameter(tszName, adVarBinary, Direction, nSize));
+		pImpl->m_pCommand_->Parameters->Append(pParametor);
 
-		try	{
-			_ParameterPtr pParametor(pImpl->m_pCommand_->CreateParameter(tszName, adVarBinary, Direction, nSize));
-			pImpl->m_pCommand_->Parameters->Append(pParametor);
+		_variant_t vBinary;
+		SAFEARRAY FAR *pArray = NULL;
+		SAFEARRAYBOUND rarrayBound[1];
 
-			_variant_t vBinary;
-			SAFEARRAY FAR *pArray = NULL;
-			SAFEARRAYBOUND rarrayBound[1];
-
-			if (NULL == pValue)		//명시적 null이거나 값이 null이라면
-			{
-				vBinary.vt = VT_NULL;
-				pParametor->Value = vBinary;
-			}
-			else
-			{
-				vBinary.vt = VT_ARRAY | VT_UI1;
-				rarrayBound[0].lLbound = 0;
-				rarrayBound[0].cElements = nSize;
-				pArray = SafeArrayCreate(VT_UI1, 1, rarrayBound);
-
-				for (long n = 0; n < nSize; ++n)
-				{
-					SafeArrayPutElement(pArray, &n, &(pValue[n]));
-				}
-				vBinary.parray = pArray;
-				pParametor->AppendChunk(vBinary);
-			}
+		if (NULL == pValue)		//명시적 null이거나 값이 null이라면
+		{
+			vBinary.vt = VT_NULL;
+			pParametor->Value = vBinary;
 		}
-		catch (_com_error &e) {
-			dump_com_error(e);
+		else
+		{
+			vBinary.vt = VT_ARRAY | VT_UI1;
+			rarrayBound[0].lLbound = 0;
+			rarrayBound[0].cElements = nSize;
+			pArray = SafeArrayCreate(VT_UI1, 1, rarrayBound);
+
+			for (long n = 0; n < nSize; ++n)
+			{
+				SafeArrayPutElement(pArray, &n, &(pValue[n]));
+			}
+			vBinary.parray = pArray;
+			pParametor->AppendChunk(vBinary);
 		}
-		return;
 	}
 
 	void CADO::GetParameter(IN TCHAR* tszName, OUT TCHAR* pValue, IN int nSize)
@@ -459,20 +415,18 @@ namespace ADO_NS
 		if (!tls_index || !config)
 			return nullptr;
 
-		CADO* p = (CADO*)::TlsGetValue(tls_index);
+		CADO* p = (CADO*)TlsGetValue(tls_index);
 		if (p)
 		{
 			if (p->IsOpen())
 			{
-				if(p->CommandReset())
-					return p;
+				p->CommandReset();
 			}
 			else
 			{
 				if (p->GetRetryConnection())
 				{
-					if (p->Open())
-						return p;
+					p->Open();
 				}
 			}
 
@@ -481,16 +435,12 @@ namespace ADO_NS
 		else
 		{
 			CADO* p = new CADO(*config);
-			if (!p->Open())
-			{
-				delete p;
-				return nullptr;
-			}
+			p->Open();
 
 			std::lock_guard<std::mutex> lock(mt);
 			ado_list.push_back(p);
 
-			::TlsSetValue(tls_index, p);
+			TlsSetValue(tls_index, p);
 
 			return p;
 		}
@@ -500,7 +450,7 @@ namespace ADO_NS
 
 	void ADO::Free()
 	{
-		::TlsFree(tls_index);
+		TlsFree(tls_index);
 		tls_index = 0;
 
 		std::lock_guard<std::mutex> lock(mt);
