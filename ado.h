@@ -45,6 +45,19 @@ namespace ADO_NS
 		CONFIG_IMPL* pImpl_;
 	};
 
+	template<typename T>
+	struct DataT
+	{
+		typedef T& TT;
+	};
+
+	template<>
+	struct DataT<TCHAR*>
+	{
+		typedef TCHAR* TT;
+	};
+
+
 	struct CADO_IMPL;
 	class CADO
 	{
@@ -69,15 +82,14 @@ namespace ADO_NS
 		void RollbackTransaction();
 		
 		template<typename T>
-		void GetFieldValue(IN TCHAR* tszName, OUT T& Value);
-		/**
-		\remarks	문자형 필드값을 읽는다.
-		*/
-		void GetFieldValue(IN TCHAR*, OUT TCHAR*, IN unsigned int);
+		void GetFieldValue(IN TCHAR* tszName, OUT T& data);
+		template<size_t N>
+		void GetFieldValue( IN TCHAR* tszName, OUT TCHAR(&data)[N] );
 		/**
 		\remarks	binary 필드값을 읽는다.
 		*/
-		void GetFieldValue(IN TCHAR*, OUT BYTE*, IN int, OUT int&);
+		template<size_t N>
+		void GetFieldValue(IN TCHAR* tszName, OUT BYTE(&data)[N], OUT int& outSize);
 
 		/**
 		\remarks	정수/실수/날짜시간 타입의 파라메터 생성
@@ -89,16 +101,13 @@ namespace ADO_NS
 		/**
 		\remarks	정수/실수/날짜시간 타입의 null값 파라메터 생성
 		*/
-		void CreateNullParameter(IN TCHAR*, IN enum DataTypeEnum, IN enum ParameterDirectionEnum);
+		void CreateNullParameter( IN TCHAR* tszName, IN enum DataTypeEnum Type, IN enum ParameterDirectionEnum Direction );
 
-		/**
-		\remarks	문자열 타입 파라메터 생성, 길이 변수는 최소 0보다 커야 한다. null값 생성은 TCHAR*에 NULL값을 넘긴다.
-		*/
-		void CreateParameter(IN TCHAR*, IN enum ParameterDirectionEnum, IN TCHAR*, IN int);
 		/**
 		\remarks	binary 타입 파라메터 생성, 길이 변수는 최소 0보다 커야 한다. null값 생성은 BYTE*에 NULL값을 넘긴다.
 		*/
-		void CreateBinaryParameter(IN TCHAR*, IN enum ParameterDirectionEnum, IN BYTE*, IN int);
+		template<size_t N>
+		void CreateParameter(IN TCHAR*, IN enum ParameterDirectionEnum, IN BYTE(&data)[N]);
 
 		/**
 		\remarks	정수/실수/날짜시간 타입의 파라메터 값 읽기
@@ -109,12 +118,14 @@ namespace ADO_NS
 		/**
 		\remarks	문자형 파라메터값을 읽는다.
 		*/
-		void GetParameter(IN TCHAR*, OUT TCHAR*, IN int);
+		template<size_t N>
+		void GetParameter( IN TCHAR* tszName, OUT TCHAR( &data )[N] );
 
 		/**
 		\remarks	바이너리형 파라메터값을 읽는다.
 		*/
-		void GetParameter(IN TCHAR*, OUT BYTE*, IN int, OUT int&);
+		template<size_t N>
+		void GetParameter(IN TCHAR*, OUT BYTE(&data)[N], OUT int& outSize);
 
 
 	private:
