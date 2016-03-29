@@ -90,7 +90,6 @@ int sample_procedure_call()
 		}
 
 		pDB->NextRecordSet();
-
 		while (pDB->HasNext())
 		{
 			pDB->GetFieldValue(_T("smallVal"), smallVal);
