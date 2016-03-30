@@ -1,4 +1,3 @@
-
 CREATE TABLE [dbo].[sample_table](
 	[bitVal] [bit] NULL,
 	[tinyVal] [tinyint] NULL,
@@ -21,6 +20,9 @@ SET ANSI_PADDING OFF
 GO
 
 
+drop proc [sample_procedure]
+go
+
 create  PROC [dbo].[sample_procedure]
     @io_bitVal		    BIT				OUTPUT,
     @io_tinyVal			TINYINT			OUTPUT,
@@ -31,11 +33,7 @@ create  PROC [dbo].[sample_procedure]
     @io_charVal         VARCHAR(30)		OUTPUT,
     @io_sDate		    SMALLDATETIME	OUTPUT,
     @io_date			DATETIME		OUTPUT,
-    @io_binaryVal		VARBINARY(50)	OUTPUT,
-	@io_nullVal			int				OUTPUT,
-	@io_nullcharVal     VARCHAR(30)		OUTPUT,
-    @io_nullBinaryVal	IMAGE			OUTPUT
-
+    @io_binaryVal		VARBINARY(50)	OUTPUT
 AS       
 DECLARE  
     @v_Flag             BIT
@@ -53,20 +51,20 @@ BEGIN
 	,@io_charVal      
 	,@io_sDate		 
 	,@io_date		
-	,@io_binaryVal	
-	,@io_nullVal		
-	,@io_nullcharVal  
-	,@io_nullBinaryVal
+	,@io_binaryVal
+	,NULL
+	,NULL
+	,NULL	
 	)
     
-	select top 1 * from sample_table where binaryVal is not null
-	select top 1 * from sample_table where binaryVal is not null
+	select top 3 * from sample_table where binaryVal is not null
+	select top 3 * from sample_table where binaryVal is not null
 
 	set @io_intVal = 77777777
 	SET @io_bigVal = 9223372036854775800
 	SET @io_charVal = 'hello world!!!'
 	SET @io_date = '20160307 23:23:11'
-	SELECT top 1 @io_binaryVal = binaryVal from sample_table where binaryVal is not null
+	SELECT top 2 @io_binaryVal = binaryVal from sample_table where binaryVal is not null
 		
 	return 1234
 END
